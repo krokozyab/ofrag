@@ -25,8 +25,8 @@ Copy the printed machine ID. You will use it to request a license.
 - You will receive a verification email. Click the link.
 - You will receive a second email with your license.
 
-Save the license content as `license.json` in the same folder as `ofmcp.exe`
-or set `LICENSE_PATH` in Claude Desktop (see below).
+Save the license content as `license.json` in the same folder as `ofmcp.exe`,
+ set `LICENSE_PATH` in Claude Desktop (see below).
 
 ## 4) Configure Claude Desktop
 
