@@ -34,7 +34,7 @@ This isn't just a "dumb pipe" for SQL—it is a cognitive force multiplier for y
 *   **Multiplied Intelligence:** Instead of guessing, the LLM receives precise structural feedback (e.g., "The column `VENDOR_NAME` does not exist in table `AP_INVOICES_ALL`"). This **augments** the LLM's context, allowing it to perform highly accurate SQL repairs and optimizations that would otherwise be hallucinations and tokens waste.
 
 ### ⚡ Local Intelligence (RAG Retrieval)
-We respect your production environment by running sophisticated analysis **locally**.
+We respect you environment by running sophisticated analysis **locally**.
 *   **Advanced Introspection Tools:** It’s not just a cache; it’s a search engine. `ofrag` ships with a suite of local tools—**Fuzzy Search** (`search_identifiers`), **Semantic Discovery** (`semantic_search`), and **Module Context Analyzers** (`module_summary`)—that traverse your schema instantly.
 *   **Zero-Latency Reasoning:** When the AI explores your schema to understand how `AP_INVOICES` relates to `PO_HEADERS`, it uses these local tools to "think" about your data structure.
 *   **Less Pressure:** Your Oracle Fusion database receives only the final, polished queries—never the heavy exploratory workload.
