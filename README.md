@@ -43,7 +43,7 @@ We respect your production environment by running sophisticated analysis **local
 
 ## Documentation
 
-*   [**Installation & Setup**](docs/INSTALL.md) - How to get the binary running on ~~macOS, Linux, or~~ Windows.
+*   [**Installation & Setup**](docs/installation.md) - Detailed guide on how to install, configure, and get the binary running.
 
 ---
 
