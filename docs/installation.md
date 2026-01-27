@@ -78,5 +78,5 @@ Edit `claude_desktop_config.json` with the correct paths.
 
 ## Notes
 
-- The demo license expires after 14 days. Request a new license or purchase a full license to continue.
+- The demo license expires after 14 days.
 - Make sure the paths match your actual folder structure.
