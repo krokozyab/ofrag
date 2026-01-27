@@ -4,7 +4,7 @@ This guide walks you through downloading the binaries, obtaining a demo license,
 
 ## 1) Download Files
 
-- Download **`ofmcp.exe`** and **`metadata.db`** from the latest release.
+- Download **`ofmcp.exe`** and **`metadata.db`** from the [latest release](https://github.com/krokozyab/ofrag/releases).
 - Save both files in the same folder (e.g., `C:\Users\User\ofmcp\`).
 
 ## 2) Generate a Machine ID
