@@ -26,9 +26,15 @@ Copy the printed machine ID. You will use it to request a license.
 - You will receive a second email with your license.
 
 Save the license content as `license.json` in the same folder as `ofmcp.exe`,
- set `LICENSE_PATH` in Claude Desktop (see below).
+or set `LICENSE_PATH` in Claude Desktop (see below).
 
-## 4) Configure Claude Desktop
+## 4) Setup Fusion Reports
+
+In your Fusion instance, un-archive **`DM_ARB.xdm.catalog`** and **`RP_ARB.xdo.catalog`** into the `/Shared Folders/Custom/Financials` folder. 
+
+You can find these files in the [otbireport folder of the ofjdbc repository](https://github.com/krokozyab/ofjdbc/tree/master/otbireport).
+
+## 5) Configure Claude Desktop
 
 Open Claude Desktop and go to Settings:
 
