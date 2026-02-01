@@ -17,7 +17,7 @@ ofmcp.exe --print-machine-id
 
 Copy the printed machine ID. You will use it to request a license.
 
-## 3) Request a Demo License
+## 3) Request a License
 
 - Open: https://license.oraclefusionsql.com/
 - Enter your **email** and **machine ID**.

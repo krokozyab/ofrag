@@ -49,7 +49,13 @@ A Model Context Protocol (MCP) server for Oracle Fusion Cloud ERP that provides 
    ```
    *(On macOS: `./ofmcp --print-machine-id`)*
 
-2. **Obtain a license** and save as `license.json` next to the executable.
+2. **Request a License:**
+   - Open: https://license.oraclefusionsql.com/
+   - Enter your **email** and **machine ID**.
+   - Submit the form.
+   - You will receive a verification email. Click the link.
+   - You will receive a second email with your license.
+   - Save as `license.json` next to the executable.
 
 3. **Configure your MCP Client** (e.g., Claude Desktop, Gemini, Claude Code):
    
