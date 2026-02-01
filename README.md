@@ -44,6 +44,7 @@ We respect you environment by running sophisticated analysis **locally**.
 ## Documentation
 
 *   [**Installation & Setup**](docs/installation.md) - Detailed guide on how to install, configure, and get the binary running.
+*   [**Detailed MCP Server Docs**](docs/README.md) - Complete reference for configuration, authentication, variables and tools.
 
 ---
 
