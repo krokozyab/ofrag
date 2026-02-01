@@ -650,6 +650,21 @@ rm -rf ~/.ofrag/chrome-profile
 | "licence not found" | Place license.json next to binary or set `LICENSE_PATH` |
 | "licence invalid" | Machine ID mismatch - get new license |
 
+### Forcing SSO / Overriding System Environment
+
+If you experience issues where a specific user seems to be stuck or the configuration is ignored (e.g., Gemini reports a user from a previous session despite no visible config), you can force SSO mode by explicitly setting empty environment variables in your MCP client configuration.
+
+**Gemini / Claude Config Example:**
+```json
+"env": {
+  "FUSION_HOST": "https://your-instance.oraclecloud.com",
+  "FUSION_SQL_REPORT_PATH": "/Custom/Financials/RP_ARB.xdo",
+  "FUSION_USER": "",
+  "FUSION_PASSWORD": ""
+}
+```
+Setting `FUSION_USER` and `FUSION_PASSWORD` to empty strings will override any system-level environment variables and force the server to use browser-based SSO.
+
 ### Connection Issues
 
 | Problem | Solution |
