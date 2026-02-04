@@ -1,4 +1,4 @@
-# Oracle Fusion RAG Engine (`ofrag`)
+# Oracle Fusion RAG Engine (`ofrag`) MCP server
 
 **Start chatting with your ERP.**
 
