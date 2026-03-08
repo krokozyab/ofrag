@@ -547,51 +547,61 @@ The server requires a machine-bound license file.
 
 ## Tools Reference
 
-### Metadata Tools
+### Discovery & Metadata
 
 | Tool | Description | Required Params |
 |------|-------------|-----------------|
-| `list_tables` | List tables with optional schema filter | - |
-| `list_columns` | List columns for a table | `table_name` |
-| `table_overview` | Narrative overview with key columns | `table_name` |
-| `index_info` | Index definitions for a table | `table_name` |
+| `list_tables` | List tables with optional schema/module filter | - |
+| `list_columns` | List columns, types, and descriptions for a table | `table_name` |
+| `table_overview` | Narrative overview with key columns and relationships | `table_name` |
+| `index_info` | Index definitions and indexed columns for a table | `table_name` |
 
-### Search Tools
+### Search
 
 | Tool | Description | Required Params |
 |------|-------------|-----------------|
-| `search_identifiers` | Fuzzy search for table/column names | `query` |
-| `semantic_search` | Business concept search with synonyms | `query` |
-| `search_descriptions` | Full-text search in descriptions | `query` |
+| `search_identifiers` | Weighted fuzzy search for table/column names with Oracle suffix boosts (`_ALL`, `_B`, `_TL`) and noise filtering | `query` |
+| `semantic_search` | Business concept search — maps natural language (e.g., "unpaid invoices") to tables via synonyms, module clustering, and relationship density | `query` |
+| `search_descriptions` | Multi-token AND search across table/column descriptions and remarks | `query` |
 
 ### SQL Tools
 
 | Tool | Description | Required Params |
 |------|-------------|-----------------|
-| `lint_sql` | Validate SQL with Oracle-specific fixes | `sql` |
-| `suggest_sql` | SQL completion suggestions | - |
-| `raw_select` | Read-only SELECT on metadata cache | `sql` |
-| `execute_oracle_sql` | **Live** SQL against Oracle Fusion | `sql` |
+| `lint_sql` | Validate SQL against the Oracle schema cache — parses AST, checks table/column existence, suggests fixes | `sql` |
+| `suggest_sql` | SQL completion suggestions based on schema context | - |
+| `raw_select` | Read-only SELECT on the local metadata cache (DuckDB) — useful for exploring schema without hitting Oracle | `sql` |
+| `execute_oracle_sql` | Execute a **live** SQL query against Oracle Fusion via BI Publisher SOAP. Returns results inline (truncated to 50KB). Best for quick lookups | `sql` |
+| `execute_oracle_sql_to_file` | Execute a **live** SQL query and save results to a local file (`~/fusion_exports/`). Runs async with automatic pagination. Use for large exports — results are NOT returned inline | `sql` |
+| `get_sql_job_status` | Check progress of an async SQL-to-file job (rows fetched, pages completed, elapsed time). Omit `job_id` to list all jobs | - |
 
-### Business Process Tools
-
-| Tool | Description | Required Params |
-|------|-------------|-----------------|
-| `module_summary` | Summary of Oracle module (AP, GL, etc.) | `module` |
-| `list_business_processes` | List available process definitions | - |
-| `process_catalog` | Full business process catalog | - |
-| `business_process_map` | Table mapping for a process | `process_code` |
-| `relationship_map` | Inbound/outbound table relationships | `table_name` |
-| `integration_flow_mapper` | Data flow dependencies | `table_name` or `process` |
-| `cross_module_analyzer` | Cross-module touchpoints | `table_name` |
-| `scenario_mapper` | Map scenario/intent to tables | `scenario` or `intent` |
-
-### Authentication Tools
+### Live REST API
 
 | Tool | Description | Required Params |
 |------|-------------|-----------------|
-| `get_auth_status` | Show current auth state | - |
-| `authenticate` | Force browser SSO re-authentication | - |
+| `rest_call` | Make an HTTP REST call and return the response inline (truncated to 50KB). Works with **any** HTTP endpoint — Oracle Fusion REST APIs with managed SSO auth, or external APIs with bearer/basic/no auth. The agent can call `/describe` on any Fusion resource to discover its schema on the fly, then perform CRUD operations without hardcoded schemas | `url` |
+| `rest_call_to_file` | Make a REST call and save the full untruncated response to a local file (`~/fusion_exports/`). Runs async. Set `paginate=true` for Oracle Fusion REST APIs — automatically fetches all pages via `{items, hasMore, next}` pattern and merges into one JSON array | `url` |
+| `get_rest_job_status` | Check progress of an async REST-to-file job. Omit `job_id` to list all jobs | - |
+
+### Business Process & Context
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `module_summary` | Summary of an Oracle module (AP, GL, AR, PO, etc.) — key tables, relationships, common queries | `module` |
+| `list_business_processes` | List all available business process definitions | - |
+| `process_catalog` | Full business process catalog with stages and table mappings | - |
+| `business_process_map` | Map a specific process to its primary tables and data flow | `process_code` |
+| `relationship_map` | Inbound/outbound FK relationships for a table | `table_name` |
+| `integration_flow_mapper` | Data flow dependencies — upstream sources and downstream consumers | `table_name` or `process` |
+| `cross_module_analyzer` | Cross-module touchpoints — how a table connects across AP, GL, PO, etc. | `table_name` |
+| `scenario_mapper` | Map a business scenario or intent to relevant tables and queries | `scenario` or `intent` |
+
+### Authentication
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `get_auth_status` | Show current auth state — method, user, token expiry, refresh status | - |
+| `authenticate` | Force browser-based SSO re-authentication (invalidates cached tokens) | - |
 
 ---
 
