@@ -1,7 +1,7 @@
 # Oracle Fusion RAG Engine (`ofrag`) MCP server
 
 **Start chatting with your ERP.**
-<!--[![GitHub Downloads](https://img.shields.io/github/downloads/krokozyab/ofrag/total?style=for-the-badge&logo=github)](https://github.com/krokozyab/ofrag/releases)-->
+[![GitHub Downloads](https://img.shields.io/github/downloads/krokozyab/ofrag/total?style=for-the-badge&logo=github)](https://github.com/krokozyab/ofrag/releases)
 This is a specialized **Retrieval-Augmented Generation (RAG) engine designed for LLMs** (like Claude). It empowers your AI agent to retrieve schema context locally, validate intent via semantic parsing, and fetch live business data directly from Oracle Fusion Cloud.
 
 ---
