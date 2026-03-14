@@ -77,37 +77,6 @@ Without the key, `embeddings.db` and `rest_catalog.db` are still loaded — keyw
 }
 ```
 
-### 4. Verify
-
-Check the server logs on startup. You should see:
-
-```
-Vector search enabled (embeddings: /your/path/embeddings.db)
-REST catalog loaded: /your/path/rest_catalog.db
-```
-
-Run a test search:
-
-```
-semantic_search("supplier invoices")
-```
-
-Expected output — two sections:
-
-```
-### SQL Tables & Columns
-| Kind  | Schema | Table           | Column | Score |
-| table | FUSION | AP_INVOICES_ALL |        | 66    |
-| ...   |        |                 |        |       |
-
-### REST API Resources
-| Kind          | Resource                          | Attribute | Endpoint                   | Score |
-| rest_resource | chargeLinesForInvoiceAssociations |           | /fscmRestApi/resources/... | 56    |
-| ...           |                                   |           |                            |       |
-```
-
-If only the SQL section appears, REST results may have scored below the limit — try `limit: 30`.
-
 ---
 
 ## How It Works
