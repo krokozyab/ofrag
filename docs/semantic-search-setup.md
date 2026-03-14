@@ -1,6 +1,6 @@
 # Setting Up Semantic Search
 
-`semantic_search` is the primary discovery tool in ofrag. Out of the box it uses keyword matching, synonym expansion, and business process cross-referencing. By adding two optional database files and a free API key, you unlock **vector similarity search** across 240K+ SQL descriptions and **REST API resource discovery** across 500+ Oracle Fusion endpoints.
+`semantic_search` is the primary discovery tool in ofrag. Out of the box it uses keyword matching, synonym expansion, and business process cross-referencing. By adding two optional database files and a free API key, you unlock **vector similarity search** across 25K+ SQL table and view descriptions and **REST API resource discovery** across 500+ Oracle Fusion endpoints.
 
 ---
 
@@ -8,7 +8,7 @@
 
 | File | What it adds | Size |
 |------|-------------|------|
-| `embeddings.db` | Vector search on SQL table/column descriptions — finds tables by meaning, not just name | ~1.1 GB |
+| `embeddings.db` | Vector search on SQL table descriptions — finds tables by meaning, not just name | ~54 MB |
 | `rest_catalog.db` | REST API resources and attributes in search results — shows endpoint URLs alongside SQL tables | ~46 MB |
 | `GEMINI_API_KEY` | Converts your search query into a vector at query time (one lightweight API call per search) | Free |
 

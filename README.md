@@ -1,7 +1,7 @@
 # Oracle Fusion RAG Engine (`ofrag`)
 
 **Start chatting with your ERP.**
-<!--[![GitHub Downloads](https://img.shields.io/github/downloads/krokozyab/ofrag/total?style=for-the-badge&logo=github)](https://github.com/krokozyab/ofrag/releases)-->
+
 This is a specialized **Retrieval-Augmented Generation (RAG) engine designed for LLMs** (like Claude). It empowers your AI agent to retrieve schema context locally, validate intent via semantic parsing, and fetch live business data directly from Oracle Fusion Cloud.
 
 ---
@@ -43,7 +43,7 @@ The `rest_call` tool isn’t limited to a handful of hardcoded endpoints — it 
 ### ⚡ Local Intelligence (RAG Retrieval)
 We respect your environment by running sophisticated analysis **locally**.
 *   **Advanced Introspection Tools:** It’s not just a cache; it’s a search engine. `ofrag` ships with a suite of local tools—**Fuzzy Search** (`search_identifiers`), **Semantic Discovery** (`semantic_search`), and **Module Context Analyzers** (`module_summary`)—that traverse your schema instantly.
-*   **Vector Search + REST API Catalog:** Drop the pre-built `embeddings.db` and `rest_catalog.db` from the release next to your `metadata.db` and add a free Gemini API key — `semantic_search` will use **Gemini Embedding 2** to understand the meaning of your query across 240K+ SQL descriptions and **500+ REST API resources**. Ask for "money received from customers" and it finds both `AR_RECEIVABLE_APPLICATIONS_ALL` (SQL) and relevant REST endpoints — even though those words don’t appear in any name. See [Semantic Search Setup](docs/semantic-search-setup.md) for details.
+*   **Vector Search + REST API Catalog (optional):** This is a completely optional add-on — `semantic_search` works fully without it using keyword matching, synonym expansion, and business process cross-referencing. To unlock deeper results, drop the pre-built `embeddings.db` and `rest_catalog.db` from the release next to your `metadata.db` and add a free Gemini API key. This enables **Gemini Embedding 2** to understand the meaning of your query across 25K+ SQL table and view descriptions and **500+ REST API resources**. Ask for "money received from customers" and it finds both `AR_RECEIVABLE_APPLICATIONS_ALL` (SQL) and relevant REST endpoints — even though those words don’t appear in any name. See [Semantic Search Setup](docs/semantic-search-setup.md) for details.
 *   **Zero-Latency Reasoning:** When the AI explores your schema to understand how `AP_INVOICES` relates to `PO_HEADERS`, it uses these local tools to "think" about your data structure.
 *   **Less Pressure:** Your Oracle Fusion database receives only the final, polished queries—never the heavy exploratory workload.
 
