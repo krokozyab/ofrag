@@ -46,8 +46,11 @@ Navigate to Configuration:
 
 Edit `claude_desktop_config.json` with the correct paths.
 
-### SSO Variant
+### Option A: Single Environment (FUSION_HOST in config)
 
+If you work with a single Oracle Fusion instance, set `FUSION_HOST` directly:
+
+**SSO:**
 ```json
 {
   "mcpServers": {
@@ -55,7 +58,7 @@ Edit `claude_desktop_config.json` with the correct paths.
       "command": "C:\\Users\\User\\ofmcp\\ofmcp.exe",
       "args": ["-db", "C:\\Users\\User\\ofmcp\\metadata.db"],
       "env": {
-        "FUSION_HOST": "https://server.oraclecloud.com",
+        "FUSION_HOST": "https://your-instance.oraclecloud.com",
         "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json"
       }
     }
@@ -63,8 +66,7 @@ Edit `claude_desktop_config.json` with the correct paths.
 }
 ```
 
-### Basic Authentication Variant
-
+**Basic Auth:**
 ```json
 {
   "mcpServers": {
@@ -72,7 +74,7 @@ Edit `claude_desktop_config.json` with the correct paths.
       "command": "C:\\Users\\User\\ofmcp\\ofmcp.exe",
       "args": ["-db", "C:\\Users\\User\\ofmcp\\metadata.db"],
       "env": {
-        "FUSION_HOST": "https://server.oraclecloud.com",
+        "FUSION_HOST": "https://your-instance.oraclecloud.com",
         "FUSION_USER": "user",
         "FUSION_PASSWORD": "password",
         "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json"
@@ -81,6 +83,34 @@ Edit `claude_desktop_config.json` with the correct paths.
   }
 }
 ```
+
+### Option B: Multi-Environment (Recommended)
+
+If you work with multiple Oracle Fusion instances (dev, SIT, UAT, prod), **do not** set `FUSION_HOST` in the config. Instead, use a minimal config and manage environments at runtime:
+
+```json
+{
+  "mcpServers": {
+    "fusion-metadata": {
+      "command": "C:\\Users\\User\\ofmcp\\ofmcp.exe",
+      "args": ["-db", "C:\\Users\\User\\ofmcp\\metadata.db"],
+      "env": {
+        "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json"
+      }
+    }
+  }
+}
+```
+
+Then add environments interactively in the agent conversation:
+
+```
+→ add_environment(name="dev", fusion_host="https://dev.oraclecloud.com", auth_type="sso")
+→ add_environment(name="uat", fusion_host="https://uat.oraclecloud.com", auth_type="basic", username="user", password="pass")
+→ switch_environment(name="dev")
+```
+
+No restart needed when adding or switching environments. See [Multi-Environment Management](./multi-environment.md) for full details.
 
 ## Notes
 

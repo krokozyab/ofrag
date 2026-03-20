@@ -49,10 +49,20 @@ We respect your environment by running sophisticated analysis **locally**.
 
 ---
 
+### 🔄 Multi-Environment Management
+Switch between Oracle Fusion environments (dev, SIT, UAT, prod) on the fly — no config edits, no restarts.
+*   **Interactive Setup:** Add environments with `add_environment` — specify name, host URL, and auth type (SSO or basic) directly in the agent conversation.
+*   **Instant Switching:** `switch_environment(name="prod")` — all subsequent queries hit the new environment immediately.
+*   **Cross-Environment Comparison:** Use the `environment` parameter on any query to compare data across environments without switching (e.g., compare tax rates in dev vs prod in parallel).
+*   **Mixed Auth:** Each environment can use its own auth method — SSO for prod, basic auth for automation.
+
+See [Multi-Environment Management](docs/multi-environment.md) for full details.
+
 ## Documentation
 
-*   [**Installation & Setup**](docs/installation.md) - Detailed guide on how to install, configure, and get the binary running.
-*   [**Detailed MCP Server Docs**](docs/README.md) - Complete reference for configuration, authentication, variables and tools.
+*   [**Installation & Setup**](../ofrag/docs/installation.md) - Detailed guide on how to install, configure, and get the binary running.
+*   [**Detailed MCP Server Docs**](../ofrag/docs/README.md) - Complete reference for configuration, authentication, variables and tools.
+*   [**Multi-Environment Management**](docs/multi-environment.md) - Configure and switch between dev, UAT, prod environments interactively.
 *   [**Semantic Search Setup**](docs/semantic-search-setup.md) - How to enable vector search and REST API catalog for full-powered semantic discovery.
 
 ---

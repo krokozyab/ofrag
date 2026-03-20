@@ -28,6 +28,7 @@ A Model Context Protocol (MCP) server for Oracle Fusion Cloud ERP that provides 
 - **SQL Validation** - Lint SQL with Oracle-specific fixes and suggestions
 - **Live SQL Execution** - Run queries against Oracle Fusion via BI Publisher SOAP
 - **Business Process Mapping** - Map processes to tables and understand data flows
+- **Multi-Environment Management** - Configure and switch between dev, UAT, prod environments without restarts
 - **Authentication Management** - SSO and Basic Auth with token management tools
 
 ### Components
@@ -38,6 +39,7 @@ A Model Context Protocol (MCP) server for Oracle Fusion Cloud ERP that provides 
 | `metadata.db` | DuckDB cache of Oracle Fusion schema metadata |
 | `license.json` | Machine-bound license file |
 | `config.json` | Optional configuration file |
+| `environments.json` | Optional multi-environment config (managed via tools, not manually) |
 
 ---
 
@@ -128,7 +130,7 @@ The `ofmcp` executable is designed to be invoked directly by an LLM client (Clau
 
 #### FUSION_HOST
 
-**Required**: Yes
+**Required**: Yes (unless using [multi-environment management](./multi-environment.md))
 **Type**: URL
 **Default**: None
 
@@ -313,11 +315,15 @@ Chrome browser not found
 
 ### Configuration Priority
 
-Environment variables and configuration files can overlap. The priority order is:
+The system resolves Oracle Fusion connection settings in this order:
 
-1. **Environment Variables** (highest priority)
-2. **config.json** (next to executable)
-3. **Default values** (lowest priority)
+1. **Per-request `environment` parameter** (highest priority)
+2. **Active environment** from `environments.json` (managed via `add_environment` / `switch_environment`)
+3. **Environment Variables** set by MCP client
+4. **config.json** (next to executable)
+5. **Default values** (lowest priority)
+
+> **Note:** If you use `add_environment` to configure environments, those take precedence over env vars. See [Multi-Environment Management](./multi-environment.md) for details.
 
 #### Configuration File Format
 
@@ -596,12 +602,23 @@ The server requires a machine-bound license file.
 | `cross_module_analyzer` | Cross-module touchpoints — how a table connects across AP, GL, PO, etc. | `table_name` |
 | `scenario_mapper` | Map a business scenario or intent to relevant tables and queries | `scenario` or `intent` |
 
+### Environment Management
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `add_environment` | Add or update a named Oracle Fusion environment (dev, UAT, prod) with SSO or basic auth | `name`, `fusion_host` |
+| `list_environments` | List all configured environments and show which one is active | - |
+| `switch_environment` | Switch the active environment — all subsequent commands use the new environment | `name` |
+| `remove_environment` | Remove a named environment | `name` |
+
+See [Multi-Environment Management](./multi-environment.md) for full details, cross-environment comparison examples, and configuration storage.
+
 ### Authentication
 
 | Tool | Description | Required Params |
 |------|-------------|-----------------|
-| `get_auth_status` | Show current auth state — method, user, token expiry, refresh status | - |
-| `authenticate` | Force browser-based SSO re-authentication (invalidates cached tokens) | - |
+| `get_auth_status` | Show current auth state — method, user, token expiry, refresh status. Accepts optional `environment` parameter | - |
+| `authenticate` | Force browser-based SSO re-authentication (invalidates cached tokens). Accepts optional `environment` parameter | - |
 
 ---
 
