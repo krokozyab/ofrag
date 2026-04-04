@@ -5,6 +5,7 @@ This guide walks you through downloading the binaries, obtaining a demo license,
 ## 1) Download Files
 
 - Download **`ofmcp.exe`** and **`metadata.db`** from the [latest release](https://github.com/krokozyab/ofrag/releases).
+- `metadata.db` is a unified database containing schema metadata, vector embeddings, and REST API catalog — no other database files needed.
 - Save both files in the same folder (e.g., `C:\Users\User\ofmcp\`).
 
 ## 2) Generate a Machine ID
@@ -59,7 +60,8 @@ If you work with a single Oracle Fusion instance, set `FUSION_HOST` directly:
       "args": ["-db", "C:\\Users\\User\\ofmcp\\metadata.db"],
       "env": {
         "FUSION_HOST": "https://your-instance.oraclecloud.com",
-        "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json"
+        "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json",
+        "GEMINI_API_KEY": "AIzaSy...your-key"
       }
     }
   }
@@ -77,7 +79,8 @@ If you work with a single Oracle Fusion instance, set `FUSION_HOST` directly:
         "FUSION_HOST": "https://your-instance.oraclecloud.com",
         "FUSION_USER": "user",
         "FUSION_PASSWORD": "password",
-        "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json"
+        "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json",
+        "GEMINI_API_KEY": "AIzaSy...your-key"
       }
     }
   }
@@ -95,7 +98,8 @@ If you work with multiple Oracle Fusion instances (dev, SIT, UAT, prod), **do no
       "command": "C:\\Users\\User\\ofmcp\\ofmcp.exe",
       "args": ["-db", "C:\\Users\\User\\ofmcp\\metadata.db"],
       "env": {
-        "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json"
+        "LICENSE_PATH": "C:\\Users\\User\\ofmcp\\license.json",
+        "GEMINI_API_KEY": "AIzaSy...your-key"
       }
     }
   }
@@ -116,3 +120,5 @@ No restart needed when adding or switching environments. See [Multi-Environment 
 
 - The demo license expires after 14 days.
 - Make sure the paths match your actual folder structure.
+- `GEMINI_API_KEY` is optional but recommended — it enables vector similarity search in `semantic_search`. Get a free key at [Google AI Studio](https://aistudio.google.com/apikey).
+- `metadata.db` is a unified database containing schema metadata, vector embeddings, and REST API catalog. No additional database files are needed.

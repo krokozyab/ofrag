@@ -24,9 +24,14 @@ A Model Context Protocol (MCP) server for Oracle Fusion Cloud ERP that provides 
 ### Key Features
 
 - **Metadata Exploration** - Browse tables, columns, indexes, and relationships
-- **Intelligent Search** - Fuzzy, semantic, and description-based search
+- **Intelligent Search** - Fuzzy, semantic, and vector similarity search with adaptive knee-point cutoff
 - **SQL Validation** - Lint SQL with Oracle-specific fixes and suggestions
 - **Live SQL Execution** - Run queries against Oracle Fusion via BI Publisher SOAP
+- **BI Publisher Reports** - Run and export arbitrary BI Publisher reports (PDF, Excel, CSV, XML)
+- **Oracle Configuration** - Lookup values, profile options, flexfield descriptions
+- **Scheduled Processes** - Submit and track ESS batch jobs
+- **Data Import** - Generate FBDI templates for interface tables
+- **Cross-Environment Comparison** - Compare lookups, profiles, flexfields between environments
 - **Business Process Mapping** - Map processes to tables and understand data flows
 - **Multi-Environment Management** - Configure and switch between dev, UAT, prod environments without restarts
 - **Authentication Management** - SSO and Basic Auth with token management tools
@@ -36,9 +41,8 @@ A Model Context Protocol (MCP) server for Oracle Fusion Cloud ERP that provides 
 | Component | Description |
 |-----------|-------------|
 | `ofmcp` | MCP server (stdio transport) for MCP clients (Claude Desktop, Gemini, etc.) |
-| `metadata.db` | DuckDB cache of Oracle Fusion schema metadata |
+| `metadata.db` | Unified DuckDB — schema metadata, vector embeddings, and REST API catalog |
 | `license.json` | Machine-bound license file |
-| `config.json` | Optional configuration file |
 | `environments.json` | Optional multi-environment config (managed via tools, not manually) |
 
 ---
@@ -588,6 +592,41 @@ The server requires a machine-bound license file.
 | `rest_call` | Make an HTTP REST call and return the response inline (truncated to 50KB). Works with **any** HTTP endpoint — Oracle Fusion REST APIs with managed SSO auth, or external APIs with bearer/basic/no auth. The agent can call `/describe` on any Fusion resource to discover its schema on the fly, then perform CRUD operations without hardcoded schemas | `url` |
 | `rest_call_to_file` | Make a REST call and save the full untruncated response to a local file (`~/fusion_exports/`). Runs async. Set `paginate=true` for Oracle Fusion REST APIs — automatically fetches all pages via `{items, hasMore, next}` pattern and merges into one JSON array | `url` |
 | `get_rest_job_status` | Check progress of an async REST-to-file job. Omit `job_id` to list all jobs | - |
+
+### BI Publisher Reports
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `run_bi_report` | Execute a BI Publisher report inline. XML results are auto-parsed into a markdown table. Supports all formats: xml, csv, pdf, xlsx, rtf, html | `report_path` |
+| `run_bi_report_to_file` | Export a BI report to a local file (PDF, Excel, CSV, etc.). Runs async with job tracking | `report_path` |
+| `get_bi_job_status` | Check progress of a BI report export job | - |
+
+### Oracle Configuration
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `lookup_values` | Get all values for a lookup type (LOV) — codes, meanings, descriptions, enabled status | `lookup_type` |
+| `profile_values` | Get profile option values at site, product, and user levels | `profile_name` |
+| `describe_flexfield` | Describe a Descriptive Flexfield (DFF) — contexts, segments, column mappings, required flags | `flexfield_code` |
+
+### Data Import
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `generate_fbdi_template` | Generate a CSV template for FBDI (File-Based Data Import) with column headers, data types, and required indicators | `interface_table` |
+
+### Scheduled Processes
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `submit_ess_job` | Submit an ESS (Enterprise Scheduler) batch job — imports, reports, accounting. Returns a request ID | `job_package_name` |
+| `get_ess_job_status` | Check ESS job status: RUNNING, SUCCEEDED, FAILED, WARNING, CANCELLED | `request_id` |
+
+### Cross-Environment
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `compare_environments` | Compare lookups, profile options, or flexfield setups between two environments. Shows only-in-source, only-in-target, and different values | `source_env`, `target_env`, `object_type`, `filter` |
 
 ### Business Process & Context
 

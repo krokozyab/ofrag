@@ -43,7 +43,7 @@ The `rest_call` tool isn’t limited to a handful of hardcoded endpoints — it 
 ### ⚡ Local Intelligence (RAG Retrieval)
 We respect your environment by running sophisticated analysis **locally**.
 *   **Advanced Introspection Tools:** It’s not just a cache; it’s a search engine. `ofrag` ships with a suite of local tools—**Fuzzy Search** (`search_identifiers`), **Semantic Discovery** (`semantic_search`), and **Module Context Analyzers** (`module_summary`)—that traverse your schema instantly.
-*   **Vector Search + REST API Catalog (optional):** This is a completely optional add-on — `semantic_search` works fully without it using keyword matching, synonym expansion, and business process cross-referencing. To unlock deeper results, drop the pre-built `embeddings.db` and `rest_catalog.db` from the release next to your `metadata.db` and add a free Gemini API key. This enables **Gemini Embedding 2** to understand the meaning of your query across 25K+ SQL table and view descriptions and **500+ REST API resources**. Ask for "money received from customers" and it finds both `AR_RECEIVABLE_APPLICATIONS_ALL` (SQL) and relevant REST endpoints — even though those words don’t appear in any name. See [Semantic Search Setup](docs/semantic-search-setup.md) for details.
+*   **Vector Search + REST API Catalog:** The unified `metadata.db` includes pre-built vector embeddings for 200K+ SQL table/column descriptions and 500+ REST API resources. Add a free Gemini API key to unlock **Gemini Embedding 2** for vector similarity search. Ask for "money received from customers" and it finds both `AR_RECEIVABLE_APPLICATIONS_ALL` (SQL) and relevant REST endpoints — even though those words don’t appear in any name. An adaptive **knee-point algorithm** dynamically determines the relevance cutoff for each query. See [Semantic Search Setup](docs/semantic-search-setup.md) for details.
 *   **Zero-Latency Reasoning:** When the AI explores your schema to understand how `AP_INVOICES` relates to `PO_HEADERS`, it uses these local tools to "think" about your data structure.
 *   **Less Pressure:** Your Oracle Fusion database receives only the final, polished queries—never the heavy exploratory workload.
 
@@ -53,7 +53,7 @@ We respect your environment by running sophisticated analysis **locally**.
 Switch between Oracle Fusion environments (dev, SIT, UAT, prod) on the fly — no config edits, no restarts.
 *   **Interactive Setup:** Add environments with `add_environment` — specify name, host URL, and auth type (SSO or basic) directly in the agent conversation.
 *   **Instant Switching:** `switch_environment(name="prod")` — all subsequent queries hit the new environment immediately.
-*   **Cross-Environment Comparison:** Use the `environment` parameter on any query to compare data across environments without switching (e.g., compare tax rates in dev vs prod in parallel).
+*   **Cross-Environment Comparison:** `compare_environments` diffs lookups, profile options, or flexfield setups between any two environments — shows what's only in source, only in target, and what differs.
 *   **Mixed Auth:** Each environment can use its own auth method — SSO for prod, basic auth for automation.
 
 See [Multi-Environment Management](docs/multi-environment.md) for full details.
