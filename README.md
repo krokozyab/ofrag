@@ -189,12 +189,12 @@ Download from [Releases](https://github.com/krokozyab/ofrag/releases) (Windows a
 
 ## 📄 Documentation
 
-| Guide | Description |
-|---|---|
-| [Installation & Setup](docs/installation.md) | Detailed guide on how to install, configure, and get the binary running |
-| [Full MCP Server Reference](docs/README.md) | Complete reference for configuration, authentication, variables and tools |
+| Guide                                                     | Description |
+|-----------------------------------------------------------|---|
+| [Installation & Setup](docs/installation.md)              | Detailed guide on how to install, configure, and get the binary running |
+| [Full MCP Server Reference](docs/README.md)               | Complete reference for configuration, authentication, variables and tools |
 | [Multi-Environment Management](docs/multi-environment.md) | Configure and switch between dev, UAT, prod environments interactively |
-| [Semantic Search Setup](docs/semantic-search.md) | How to enable vector search and REST API catalog for full-powered semantic discovery |
+| [Semantic Search Setup](docs/semantic-search-setup.md)    | How to enable vector search and REST API catalog for full-powered semantic discovery |
 
 ## 🌐 Ecosystem
 
