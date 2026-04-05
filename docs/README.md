@@ -1,219 +1,764 @@
-<h1 align="center">ofrag — MCP Server for Oracle Fusion Cloud</h1>
+# Oracle Fusion MCP Server Documentation
 
-<p align="center">
-  <strong>Give your AI agent direct access to Oracle Fusion ERP data. Ask questions in plain English — get SQL results in seconds.</strong>
-</p>
+A Model Context Protocol (MCP) server for Oracle Fusion Cloud ERP that provides intelligent metadata exploration, SQL execution, and business process mapping for AI assistants.
 
-<p align="center">
-  <a href="https://oraclefusionsql.com"><img src="https://img.shields.io/badge/Website-oraclefusionsql.com-orange?style=for-the-badge" alt="Website"></a>
-</p>
+## Table of Contents
 
-<p align="center">
-  <a href="#-the-magic-moment">Demo</a> · 
-  <a href="#-what-is-ofrag">What is it</a> · 
-  <a href="#-tool-catalog">Tools</a> · 
-  <a href="#-quick-start">Quick Start</a> · 
-  <a href="#-documentation">Docs</a>
-</p>
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Authentication](#authentication)
+- [Licensing](#licensing)
+- [Tools Reference](#tools-reference)
+- [Resources & Prompts](#resources--prompts)
+- [Troubleshooting](#troubleshooting)
+- [Security Best Practices](#security-best-practices)
 
 ---
 
-## The Problem
+## Overview
 
-Oracle Fusion Cloud has **25,000+ tables** across Finance, SCM, HCM, and Procurement. Finding the right table, understanding join relationships, and writing correct SQL takes hours of digging through Oracle docs. Even experienced consultants spend 15+ minutes per query cycle: log into BI Publisher → create data model → write SQL → debug → re-run.
+`ofmcp` is an MCP server that exposes Oracle Fusion metadata tools, SQL linting, and live SQL execution. It enables AI assistants (Claude, Gemini, Codex, Claude Code, etc.) to intelligently query and analyze Oracle Fusion Cloud data.
 
-**ofrag eliminates this entirely.** Your AI agent discovers tables semantically, validates SQL against a local schema cache, and executes queries against live Fusion data — all in one conversation.
+### Key Features
 
-## ✨ The Magic Moment
+- **Metadata Exploration** - Browse tables, columns, indexes, and relationships
+- **Intelligent Search** - Fuzzy, semantic, and vector similarity search with adaptive knee-point cutoff
+- **SQL Validation** - Lint SQL with Oracle-specific fixes and suggestions
+- **Live SQL Execution** - Run queries against Oracle Fusion via BI Publisher SOAP
+- **BI Publisher Reports** - Run and export arbitrary BI Publisher reports (PDF, Excel, CSV, XML)
+- **Oracle Configuration** - Lookup values, profile options, flexfield descriptions
+- **Scheduled Processes** - Submit and track ESS batch jobs
+- **Data Import** - Generate FBDI templates for interface tables
+- **Cross-Environment Comparison** - Compare lookups, profiles, flexfields between environments
+- **Business Process Mapping** - Map processes to tables and understand data flows
+- **Multi-Environment Management** - Configure and switch between dev, UAT, prod environments without restarts
+- **Authentication Management** - SSO and Basic Auth with token management tools
 
-> **You:** "Show me the top 5 unpaid invoices for vendor Acme Corp generated last month."
->
-> **Claude + ofrag:**
-> 1. **Discovers** the right tables via semantic search (`AP_INVOICES_ALL`, `POZ_SUPPLIERS`, `HZ_PARTIES`)
-> 2. **Understands** "unpaid" means `PAYMENT_STATUS_FLAG = 'N'`
-> 3. **Validates** the SQL against local metadata — catches errors before they hit production
-> 4. **Executes** the query against your live Oracle Fusion instance
-> 5. **Returns** a formatted table with invoice numbers, amounts, and dates
->
-> **Total time: ~4 seconds.**
+### Components
 
-No BI Publisher. No data model. No OTBI subject areas. Just a question and an answer.
+| Component | Description |
+|-----------|-------------|
+| `ofmcp` | MCP server (stdio transport) for MCP clients (Claude Desktop, Gemini, etc.) |
+| `metadata.db` | Unified DuckDB — schema metadata, vector embeddings, and REST API catalog |
+| `license.json` | Machine-bound license file |
+| `environments.json` | Optional multi-environment config (managed via tools, not manually) |
 
-## 🧠 What is ofrag
+---
 
-ofrag is an **MCP (Model Context Protocol) server** — an open standard that lets AI agents use external tools. It gives Claude, OpenAI, Gemini, and any MCP-compatible LLM structured access to your Oracle Fusion Cloud data.
+## Quick Start
 
+1. **Get your machine ID:**
+   ```powershell
+   ofmcp.exe --print-machine-id
+   ```
+   *(On macOS: `./ofmcp --print-machine-id`)*
+
+2. **Request a License:**
+   - Open: https://license.oraclefusionsql.com/
+   - Enter your **email** and **machine ID**.
+   - Submit the form.
+   - You will receive a verification email. Click the link.
+   - You will receive a second email with your license.
+   - Save as `license.json` next to the executable.
+
+3. **Configure your MCP Client** (e.g., Claude Desktop, Gemini, Claude Code):
+   
+   **Windows:**
+   ```json
+   {
+     "mcpServers": {
+       "fusion-metadata": {
+         "command": "C:\\path\\to\\ofmcp.exe",
+         "args": ["--db", "C:\\path\\to\\metadata.db"],
+         "env": {
+           "FUSION_HOST": "https://your-instance.oraclecloud.com",
+           "FUSION_SQL_REPORT_PATH": "/Custom/Financials/RP_ARB.xdo",
+           "LICENSE_PATH": "C:\\path\\to\\license.json"
+         }
+       }
+     }
+   }
+   ```
+
+   **macOS:**
+   ```json
+   {
+     "mcpServers": {
+       "fusion-metadata": {
+         "command": "/path/to/ofmcp",
+         "args": ["--db", "/path/to/metadata.db"],
+         "env": {
+           "FUSION_HOST": "https://your-instance.oraclecloud.com",
+           "FUSION_SQL_REPORT_PATH": "/Custom/Financials/RP_ARB.xdo",
+           "LICENSE_PATH": "/path/to/license.json"
+         }
+       }
+     }
+   }
+   ```
+
+4. **Start using tools:**
+   - `get_auth_status` - Check authentication state
+   - `authenticate` - Log in via browser SSO
+   - `list_tables` - Browse available tables
+   - `execute_oracle_sql` - Run live queries
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Chrome/Chromium browser (for SSO authentication)
+- Oracle Fusion Cloud instance access
+- Valid license file
+- **Setup Fusion Reports**: In your Fusion instance, un-archive `DM_ARB.xdm.catalog` and `RP_ARB.xdo.catalog` (found in the `otbireport` folder of this repository: [https://github.com/krokozyab/ofjdbc/tree/master/otbireport](https://github.com/krokozyab/ofjdbc/tree/master/otbireport)) into the `/Shared Folders/Custom/Financials` folder.
+  - *Note:* You can use a different folder path, but you will need to update the report path in the connection URL or via `FUSION_SQL_REPORT_PATH` (e.g., `FUSION_SQL_REPORT_PATH=/Custom/folder/RP_ARB.xdo`).
+
+### Invocation
+
+The `ofmcp` executable is designed to be invoked directly by an LLM client (Claude Desktop, Gemini, Claude Code, etc.) as a subprocess. It communicates using the Model Context Protocol (MCP) over stdio.
+
+**Command:**
+```bash
+./ofmcp --db metadata.db
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                      Your AI Agent                           │
-│           Claude · OpenAI · Gemini · Claude Code             │
-├──────────────────────────────────────────────────────────────┤
-│                    ofrag (MCP Server)                        │
-│                                                              │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐  │
-│  │  Semantic   │  │  SQL Linter  │  │  Business Process   │  │
-│  │  Search     │  │  (AST-based) │  │  Mapper             │  │
-│  └──────┬──────┘  └──────┬───────┘  └──────────┬──────────┘  │
-│         │                │                     │             │
-│  ┌──────▼──────────────────────────────────────▼──────────┐  │
-│  │           Local DuckDB Metadata Cache                  │  │
-│  │          25,000+ tables · 240K+ descriptions           │  │
-│  └────────────────────────┬───────────────────────────────┘  │
-│                           │ Only validated queries           │
-├───────────────────────────▼──────────────────────────────────┤
-│                  Oracle Fusion Cloud                         │
-│            BI Publisher SOAP · REST APIs                     │
-└──────────────────────────────────────────────────────────────┘
+
+---
+
+## Configuration
+
+### Oracle Fusion Connection
+
+#### FUSION_HOST
+
+**Required**: Yes (unless using [multi-environment management](./multi-environment.md))
+**Type**: URL
+**Default**: None
+
+Oracle Fusion SaaS instance URL.
+
+**Example:**
+```bash
+FUSION_HOST=https://you_server.oraclecloud.com
 ```
 
-**Key principle:** All schema exploration happens locally — zero queries to production during discovery. Only final, validated SQL reaches your live Fusion instance.
+**Notes:**
+- Must be a valid HTTPS URL
+- Do not include trailing slashes
+- This is the base URL for your Oracle Fusion Cloud instance
+- Can be set via environment variable or `config.json`
+- Environment variable takes precedence over config file
 
-## 🔑 Why ofrag Has No Alternatives
+**Error if missing:**
+```
+FUSION_HOST must be set via env or config.json
+```
 
-There is no other MCP server for Oracle Fusion. Period. Here's why this matters:
+---
 
-| | ofrag + AI Agent | Manual BI Publisher | OTBI | Proprietary SQL Tools |
-|---|:---:|:---:|:---:|:---:|
-| **Natural language queries** | ✅ Ask in plain English | ❌ Write SQL manually | ❌ Drag-and-drop only | ❌ Write SQL manually |
-| **Schema discovery** | ✅ Semantic search across 25K+ tables | ❌ Read Oracle docs | ❌ Limited subject areas | ✅ Table browser |
-| **SQL validation before execution** | ✅ AST parsing against local cache | ❌ Trial and error | N/A | ❌ |
-| **Cross-module table relationships** | ✅ AI traces AP→XLA→GL chains | ❌ Manual knowledge | ❌ Single subject area | ❌ |
-| **Business process mapping** | ✅ `business_process_map`, `scenario_mapper` | ❌ | ❌ | ❌ |
-| **Multi-environment switching** | ✅ DEV/SIT/UAT/PROD in one session | ❌ Separate logins | ❌ Separate logins | Partial |
-| **REST API access** | ✅ Built-in universal REST client | ❌ | ❌ | ❌ |
-| **Production safety** | ✅ Local-first, validated queries only | ⚠️ Direct execution | ✅ Sandboxed | ⚠️ Direct execution |
+#### FUSION_SQL_REPORT_PATH
 
-> **The real difference:** Other tools help you *write* SQL. ofrag lets you *skip* writing SQL — the AI does it for you, correctly, using verified metadata.
+**Required**: No
+**Type**: File Path
+**Default**: `/Custom/Financials/RP_ARB.xdo`
 
-## 🛠 Tool Catalog
+BI Publisher report path used for executing SQL queries via SOAP.
 
-ofrag exposes **30+ tools** to your AI agent, organized by function:
+**Example:**
+```bash
+FUSION_SQL_REPORT_PATH=/Custom/folder/RP_ARB.xdo
+```
 
-### Discovery & Search
-| Tool | What it does |
-|---|---|
-| `semantic_search` | Find tables/columns by business meaning ("unpaid invoices", "employee compensation") using vector embeddings across 240K+ descriptions |
-| `search_identifiers` | Find tables/columns by Oracle name pattern (`AP_INVOICES`, `VENDOR_ID`) |
-| `search_descriptions` | Exact keyword search in table/column descriptions |
-| `list_tables` | Browse tables by module with filters |
-| `list_columns` | Get all columns, types, and descriptions for a table |
-| `index_info` | Index definitions for a table |
-| `table_overview` | Quick summary: column count, purpose, module |
+**Notes:**
+- This is the path to the BI Publisher report template
+- The report must be deployed in your Oracle Fusion instance
+- Must have the correct security permissions
+- Common paths:
+  - `/Custom/Financials/RP_ARB.xdo` (default)
+  - `/Custom/folder/RP_ARB.xdo`
+  - `/Custom/<module>/RP_ARB.xdo`
 
-### SQL & Execution
-| Tool | What it does |
-|---|---|
-| `execute_oracle_sql` | Execute live SQL against Oracle Fusion, results inline |
-| `execute_oracle_sql_to_file` | Execute SQL, save results to local file (for large datasets) |
-| `lint_sql` | Parse SQL into AST, validate against cached schema — catches errors before execution |
-| `suggest_sql` | Auto-complete partial SQL using metadata cache |
-| `raw_select` | Query the local DuckDB metadata cache directly |
+---
 
-### Business Intelligence
-| Tool | What it does |
-|---|---|
-| `module_summary` | Overview of a Fusion module — purpose, key tables, typical queries |
-| `business_process_map` | Map a business process to its tables, stages, and key columns |
-| `scenario_mapper` | Map a business intent ("month-end close") to recommended tables and metrics |
-| `relationship_map` | Show inbound/outbound JOIN relationships for any table |
-| `cross_module_analyzer` | Analyze how a table connects across Fusion modules |
-| `integration_flow_mapper` | Trace end-to-end data flow: upstream feeders → table → downstream consumers |
-| `process_catalog` | Full business process catalog with all stages and tables |
+### Authentication Variables
 
-### REST API
-| Tool | What it does |
-|---|---|
-| `rest_call` | Make HTTP REST API calls to Oracle Fusion, results inline |
-| `rest_call_to_file` | REST API calls with results saved to file |
+The system supports two authentication methods:
 
-### Fusion Configuration
-| Tool | What it does |
-|---|---|
-| `describe_flexfield` | Describe Descriptive Flexfields (DFF) — contexts, segments, value sets |
-| `lookup_values` | Get all values for a Fusion lookup type (LOV) |
-| `profile_values` | Get profile option values at site/product/user levels |
+1. **Bearer Token (OAuth/SSO)** - Default, uses browser-based authentication
+2. **Basic Authentication** - Uses username and password
 
-### BI Publisher & ESS
-| Tool | What it does |
-|---|---|
-| `run_bi_report` | Execute a BI Publisher report with parameters, results inline |
-| `run_bi_report_to_file` | Execute BI Publisher report, save output to file |
-| `submit_ess_job` | Submit an ESS job (batch processes, imports, exports) |
-| `get_ess_job_status` | Check ESS job status |
+#### FUSION_USER
+
+**Required**: No (Optional for Basic Auth)
+**Type**: String
+**Default**: None
+
+Username for Basic Authentication.
+
+**Example:**
+```bash
+FUSION_USER=john.doe@company.com
+```
+
+**Notes:**
+- Only used if both `FUSION_USER` and `FUSION_PASSWORD` are set
+- If set, Basic Authentication is used instead of SSO
+- Can be set via environment variable or `config.json`
+- Environment variable takes precedence over config file
+
+---
+
+#### FUSION_PASSWORD
+
+**Required**: No (Optional for Basic Auth)
+**Type**: String
+**Default**: None
+
+Password for Basic Authentication.
+
+**Example:**
+```bash
+FUSION_PASSWORD=SecurePassword123
+```
+
+**Notes:**
+- Only used if both `FUSION_USER` and `FUSION_PASSWORD` are set
+- If set, Basic Authentication is used instead of SSO
+- Can be set via environment variable or `config.json`
+- Environment variable takes precedence over config file
+- Store securely - consider using config file with restricted permissions
+
+**Authentication Flow:**
+```
+If FUSION_USER + FUSION_PASSWORD are set:
+  → Use Basic Authentication (base64 encoded)
+Else:
+  → Use Bearer Token Authentication
+  → Launch Chrome for SSO
+  → Cache tokens for reuse
+```
+
+---
+
+### Licensing
+
+#### LICENSE_PATH
+
+**Required**: No
+**Type**: File Path
+**Default**: `./license.json` (same directory as executable)
+
+Path to the license key file.
+
+**Example:**
+```bash
+LICENSE_PATH=/Users/username/ofmcp/license.json
+```
+
+**Example (Windows):**
+```bash
+LICENSE_PATH=C:\Users\Administrator\ofmcp\license.json
+```
+
+**Notes:**
+- If not set, looks for `license.json` next to the executable
+- Can be absolute or relative path
+- Supports tilde expansion: `~/ofmcp/license.json`
+- File must contain valid JSON license data
+
+---
+
+### Browser Configuration
+
+#### FUSION_EXPLORER_CHROME_PATH
+
+**Required**: No
+**Type**: File Path
+**Default**: Auto-detected
+
+Custom path to Chrome/Chromium executable for SSO authentication.
+
+**Example (macOS):**
+```bash
+FUSION_EXPLORER_CHROME_PATH=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+```
+
+**Example (Windows):**
+```bash
+FUSION_EXPLORER_CHROME_PATH=C:\Program Files\Google\Chrome\Application\chrome.exe
+```
+
+**Notes:**
+- Only needed if Chrome is not in standard location
+- Used for browser-based SSO authentication
+- Auto-detection searches these locations:
+
+**macOS:**
+- `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+- `/Applications/Chromium.app/Contents/MacOS/Chromium`
+
+**Windows:**
+- `%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe`
+- `C:\Program Files\Google\Chrome\Application\chrome.exe`
+- `C:\Program Files (x86)\Google\Chrome\Application\chrome.exe`
+
+**Chrome Profile Storage:**
+- Profile data is saved to `~/.ofed/chrome-profile`
+- This maintains SSO session across restarts
+- Can be deleted to clear saved sessions
+
+**Error if missing:**
+```
+Chrome browser not found
+```
+
+---
+
+### Configuration Priority
+
+The system resolves Oracle Fusion connection settings in this order:
+
+1. **Per-request `environment` parameter** (highest priority)
+2. **Active environment** from `environments.json` (managed via `add_environment` / `switch_environment`)
+3. **Environment Variables** set by MCP client
+4. **config.json** (next to executable)
+5. **Default values** (lowest priority)
+
+> **Note:** If you use `add_environment` to configure environments, those take precedence over env vars. See [Multi-Environment Management](./multi-environment.md) for details.
+
+#### Configuration File Format
+
+Create `config.json` next to the executable:
+
+```json
+{
+  "FUSION_HOST": "https://your-instance.oraclecloud.com",
+  "FUSION_USER": "username",
+  "FUSION_PASSWORD": "password",
+  "FUSION_SQL_REPORT_PATH": "/Custom/folder/RP_ARB.xdo"
+}
+```
+
+**Alternative field names** (case-insensitive):
+- `FUSION_HOST` or `fusion_host`
+- `FUSION_USER` or `fusion_user`
+- `FUSION_PASSWORD` or `fusion_password`
+
+---
+
+### Configuration Examples
+
+#### Example 1: SSO Authentication (Recommended)
+
+**Environment Variables:**
+```bash
+FUSION_HOST=https://you_server.oraclecloud.com
+FUSION_SQL_REPORT_PATH=/Custom/folder/RP_ARB.xdo
+LICENSE_PATH=/Users/username/ofmcp/license.json
+```
+
+**Behavior:**
+- Uses browser-based SSO authentication
+- Opens Chrome for login
+- Caches tokens automatically
+- Refreshes tokens when expired
+
+---
+
+#### Example 2: Basic Authentication
+
+**Environment Variables:**
+```bash
+FUSION_HOST=https://you_server.oraclecloud.com
+FUSION_USER=john.doe@company.com
+FUSION_PASSWORD=SecurePassword123
+FUSION_SQL_REPORT_PATH=/Custom/folder/RP_ARB.xdo
+LICENSE_PATH=/Users/username/ofmcp/license.json
+```
+
+**Behavior:**
+- Uses Basic Authentication
+- No browser required
+- Credentials sent with every request
+- No token caching
+
+---
+
+#### Example 3: MCP Configuration (.mcp.json)
+
+```json
+{
+  "mcpServers": {
+    "fusion-metadata-go": {
+      "command": "/path/to/ofmcp",
+      "args": ["--db", "/path/to/metadata.db"],
+      "env": {
+        "FUSION_HOST": "https://you_server.oraclecloud.com",
+        "FUSION_SQL_REPORT_PATH": "/Custom/folder/RP_ARB.xdo",
+        "LICENSE_PATH": "/path/to/license.json"
+      }
+    }
+  }
+}
+```
+
+---
+
+#### Example 4: Custom Chrome Path
+
+```bash
+FUSION_HOST=https://you_server.oraclecloud.com
+FUSION_EXPLORER_CHROME_PATH=/opt/google/chrome/chrome
+LICENSE_PATH=/opt/ofmcp/license.json
+```
+
+**Use Case:**
+- Chrome installed in non-standard location
+- Multiple Chrome versions installed
+- Using Chromium instead of Chrome
+- Docker/container environments
+
+---
+
+## Authentication
+
+The server supports two authentication methods for Oracle Fusion access.
+
+### SSO Authentication (Recommended)
+
+Browser-based Single Sign-On using OAuth tokens.
+
+**Setup:** Do NOT set `FUSION_USER` or `FUSION_PASSWORD`
+
+**Flow:**
+1. On first query, Chrome opens to Oracle Fusion login page
+2. Complete SSO login in browser
+3. Tokens are cached and automatically refreshed
+
+**Benefits:**
+- More secure (no stored passwords)
+- Tokens expire automatically
+- Supports MFA and corporate SSO
+
+### Basic Authentication
+
+Username/password authentication for environments without browser access.
+
+**Setup:** Set both `FUSION_USER` and `FUSION_PASSWORD`
+
+```bash
+FUSION_USER=user@company.com
+FUSION_PASSWORD=SecurePassword123
+```
+
+**Note:** Credentials are sent with every request. Use SSO when possible.
+
+### Authentication Tools
+
+Two MCP tools provide visibility and control over authentication:
+
+#### `get_auth_status`
+
+Check current authentication state.
+
+**Parameters:** None
+
+**Returns:**
+- `authenticated` - Whether currently authenticated
+- `user` - Authenticated username
+- `connection_name` - Oracle Fusion host
+- `expires_at` - Token expiry time
+- `expires_in` - Human-readable time remaining
+- `refresh_needed` - Whether token should be refreshed
+- `auth_method` - "sso" or "basic"
+
+**Example Response:**
+```
+## Authentication Status: Authenticated
+
+- **Connection:** you_server.oraclecloud.com
+- **User:** john.doe@company.com
+- **Auth Method:** sso
+- **Expires In:** 45 minutes
+- **Expires At:** 2025-01-31T19:30:00Z
+```
+
+#### `authenticate`
+
+Force browser-based re-authentication.
+
+**Parameters:**
+- `timeout_seconds` (optional) - Wait time for login (default: 300, min: 30, max: 600)
+
+**Behavior:**
+1. Invalidates any cached tokens
+2. Launches Chrome browser
+3. Waits for user to complete SSO login
+4. Caches new tokens
+5. Returns success with user info
+
+**Use Cases:**
+- Initial authentication
+- Re-authenticate after permission changes
+- Switch to different user
+- Recover from auth errors
+
+---
+
+## Licensing
+
+The server requires a machine-bound license file.
+
+### Getting a License
+
+1. **Generate machine ID:**
+   Open a terminal in the folder where `ofmcp` lives and run:
+   ```bash
+   ./ofmcp --print-machine-id
+   ```
+   Copy the printed machine ID. You will use it to request a license.
+
+2. **Request a Demo License:**
+   - Open: https://license.oraclefusionsql.com/
+   - Enter your **email** and **machine ID**.
+   - Submit the form.
+   - You will receive a verification email. Click the link.
+   - You will receive a second email with your license.
+
+3. **Save as `license.json`** next to the executable, or set `LICENSE_PATH`.
+
+### License Format
+
+```json
+{
+  "payload": {
+    "customerId": "acme",
+    "machineId": "e620c6fb85e6db527444a4f32e5b2b6568b3694e...",
+    "expiresAt": "2025-12-31T23:59:59Z",
+    "issuedAt": "2025-01-01T12:00:00Z",
+    "plan": "enterprise"
+  },
+  "sig": "base64-encoded-signature"
+}
+```
+
+### License Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `licence not found` | Missing file | Place `license.json` next to binary or set `LICENSE_PATH` |
+| `licence invalid` | Signature mismatch | Get new license for this machine |
+| `licence expired` | Past expiry date | Renew license |
+
+---
+
+## Tools Reference
+
+### Discovery & Metadata
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `list_tables` | List tables with optional schema/module filter | - |
+| `list_columns` | List columns, types, and descriptions for a table | `table_name` |
+| `table_overview` | Narrative overview with key columns and relationships | `table_name` |
+| `index_info` | Index definitions and indexed columns for a table | `table_name` |
+
+### Search
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `search_identifiers` | Weighted fuzzy search for table/column names with Oracle suffix boosts (`_ALL`, `_B`, `_TL`) and noise filtering | `query` |
+| `semantic_search` | Business concept search — maps natural language (e.g., "unpaid invoices") to tables via synonyms, module clustering, and relationship density | `query` |
+| `search_descriptions` | Multi-token AND search across table/column descriptions and remarks | `query` |
+
+### SQL Tools
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `lint_sql` | Validate SQL against the Oracle schema cache — parses AST, checks table/column existence, suggests fixes | `sql` |
+| `suggest_sql` | SQL completion suggestions based on schema context | - |
+| `raw_select` | Read-only SELECT on the local metadata cache (DuckDB) — useful for exploring schema without hitting Oracle | `sql` |
+| `execute_oracle_sql` | Execute a **live** SQL query against Oracle Fusion via BI Publisher SOAP. Returns results inline (truncated to 50KB). Best for quick lookups | `sql` |
+| `execute_oracle_sql_to_file` | Execute a **live** SQL query and save results to a local file (`~/fusion_exports/`). Runs async with automatic pagination. Use for large exports — results are NOT returned inline | `sql` |
+| `get_sql_job_status` | Check progress of an async SQL-to-file job (rows fetched, pages completed, elapsed time). Omit `job_id` to list all jobs | - |
+
+### Live REST API
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `rest_call` | Make an HTTP REST call and return the response inline (truncated to 50KB). Works with **any** HTTP endpoint — Oracle Fusion REST APIs with managed SSO auth, or external APIs with bearer/basic/no auth. The agent can call `/describe` on any Fusion resource to discover its schema on the fly, then perform CRUD operations without hardcoded schemas | `url` |
+| `rest_call_to_file` | Make a REST call and save the full untruncated response to a local file (`~/fusion_exports/`). Runs async. Set `paginate=true` for Oracle Fusion REST APIs — automatically fetches all pages via `{items, hasMore, next}` pattern and merges into one JSON array | `url` |
+| `get_rest_job_status` | Check progress of an async REST-to-file job. Omit `job_id` to list all jobs | - |
+
+### BI Publisher Reports
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `run_bi_report` | Execute a BI Publisher report inline. XML results are auto-parsed into a markdown table. Supports all formats: xml, csv, pdf, xlsx, rtf, html | `report_path` |
+| `run_bi_report_to_file` | Export a BI report to a local file (PDF, Excel, CSV, etc.). Runs async with job tracking | `report_path` |
+| `get_bi_job_status` | Check progress of a BI report export job | - |
+
+### Oracle Configuration
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `lookup_values` | Get all values for a lookup type (LOV) — codes, meanings, descriptions, enabled status | `lookup_type` |
+| `profile_values` | Get profile option values at site, product, and user levels | `profile_name` |
+| `describe_flexfield` | Describe a Descriptive Flexfield (DFF) — contexts, segments, column mappings, required flags | `flexfield_code` |
+
+### Data Import
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `generate_fbdi_template` | Generate a CSV template for FBDI (File-Based Data Import) with column headers, data types, and required indicators | `interface_table` |
+
+### Scheduled Processes
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `submit_ess_job` | Submit an ESS (Enterprise Scheduler) batch job — imports, reports, accounting. Returns a request ID | `job_package_name` |
+| `get_ess_job_status` | Check ESS job status: RUNNING, SUCCEEDED, FAILED, WARNING, CANCELLED | `request_id` |
+
+### Cross-Environment
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `compare_environments` | Compare lookups, profile options, or flexfield setups between two environments. Shows only-in-source, only-in-target, and different values | `source_env`, `target_env`, `object_type`, `filter` |
+
+### Business Process & Context
+
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `module_summary` | Summary of an Oracle module (AP, GL, AR, PO, etc.) — key tables, relationships, common queries | `module` |
+| `list_business_processes` | List all available business process definitions | - |
+| `process_catalog` | Full business process catalog with stages and table mappings | - |
+| `business_process_map` | Map a specific process to its primary tables and data flow | `process_code` |
+| `relationship_map` | Inbound/outbound FK relationships for a table | `table_name` |
+| `integration_flow_mapper` | Data flow dependencies — upstream sources and downstream consumers | `table_name` or `process` |
+| `cross_module_analyzer` | Cross-module touchpoints — how a table connects across AP, GL, PO, etc. | `table_name` |
+| `scenario_mapper` | Map a business scenario or intent to relevant tables and queries | `scenario` or `intent` |
 
 ### Environment Management
-| Tool | What it does |
-|---|---|
-| `authenticate` | Browser-based SSO login to Oracle Fusion |
-| `get_auth_status` | Check current authentication state |
-| `add_environment` | Add/update a named environment (DEV, SIT, UAT, PROD) |
-| `switch_environment` | Switch active environment instantly |
-| `list_environments` | List all configured environments |
-| `compare_environments` | Compare configuration data between two environments |
 
-## 🚀 Quick Start
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `add_environment` | Add or update a named Oracle Fusion environment (dev, UAT, prod) with SSO or basic auth | `name`, `fusion_host` |
+| `list_environments` | List all configured environments and show which one is active | - |
+| `switch_environment` | Switch the active environment — all subsequent commands use the new environment | `name` |
+| `remove_environment` | Remove a named environment | `name` |
 
-### 1. Get the binary
-Download from [Releases](https://github.com/krokozyab/ofrag/releases) (Windows and macOS).
+See [Multi-Environment Management](./multi-environment.md) for full details, cross-environment comparison examples, and configuration storage.
 
-### 2. Follow the setup guide
+### Authentication
 
-👉 [**Installation & Setup Guide**](docs/installation.md) — step-by-step: licensing, BI Publisher report deployment, MCP client configuration (Claude Desktop, Gemini, Claude Code), authentication setup.
-
-### 3. Start talking to your ERP
-> "What tables store AP invoice data?"  
-> "Show me all overdue invoices for Acme Corp"  
-> "How are accounts payable balances linked to the general ledger?"  
-> "Compare the supplier count between DEV and PROD"
-
-## 💡 Use Cases
-
-**Ad-hoc data analysis** — Ask "show me revenue by business unit for Q4" and get results in seconds. No OTBI report creation, no BI Publisher data model, no waiting.
-
-**Implementation troubleshooting** — During Fusion implementation, quickly verify data: "are there any AP invoices without distributions?", "show me GL journal entries that haven't been transferred from XLA".
-
-**Data reconciliation** — "Compare AP subledger totals against GL balances for period DEC-24". The AI traces the full AP → XLA → GL chain and identifies discrepancies.
-
-**Schema exploration** — "What tables store employee compensation data?" The AI uses semantic search to find relevant HCM tables, shows their relationships, and explains the data model.
-
-**Integration development** — Building OIC integrations? Ask "what REST endpoints exist for AP invoices?" or "what's the FBDI template for importing journals?" — ofrag finds it.
-
-**EBS → Fusion migration** — "What's the Fusion equivalent of AP_INVOICES_ALL in EBS?" The AI maps EBS tables to Fusion tables using semantic search and module knowledge.
-
-**Report development** — Before building a BI Publisher report, prototype your SQL through conversation. The AI validates and optimizes your queries using the local schema cache.
-
-## ⚠️ Limitations
-
-- **Read-only SQL** — `SELECT` queries only through BI Publisher SOAP. Oracle Fusion does not permit write access through this layer.
-- **Security** — Ensure usage complies with your organization's security policies. Credentials are stored locally and never transmitted to third parties.
-
-## 📄 Documentation
-
-| Guide | Description |
-|---|---|
-| [Installation & Setup](docs/installation.md) | Download, license, and configure step by step |
-| [Full MCP Server Reference](docs/README.md) | Complete reference: all tools, configuration, authentication, variables |
-
-## 🌐 Ecosystem
-
-ofrag is part of the Oracle Fusion open-source ecosystem:
-
-| Project | What it does | Link |
-|---|---|---|
-| **ofrag** | MCP Server — AI-powered queries via Claude, OpenAI, Gemini | [GitHub](https://github.com/krokozyab/ofrag) |
-| **OFJDBC** | JDBC driver — SQL access from DBeaver, IntelliJ, JVM apps, ETL pipelines | [GitHub](https://github.com/krokozyab/ofjdbc) |
-
-## 📫 Contact
-
-- **Website:** [oraclefusionsql.com](https://oraclefusionsql.com)
-- **GitHub Issues:** [krokozyab/ofrag/issues](https://github.com/krokozyab/ofrag/issues)
-- **Email:** sergey.rudenko.ba@gmail.com
-- **LinkedIn:** [Sergey Rudenko](https://www.linkedin.com/in/sergey-rudenko-ba/)
+| Tool | Description | Required Params |
+|------|-------------|-----------------|
+| `get_auth_status` | Show current auth state — method, user, token expiry, refresh status. Accepts optional `environment` parameter | - |
+| `authenticate` | Force browser-based SSO re-authentication (invalidates cached tokens). Accepts optional `environment` parameter | - |
 
 ---
 
-<p align="center">
-  If ofrag saved you time, consider leaving a ⭐
-  <br><br>
-  <strong>The only MCP server for Oracle Fusion Cloud.</strong> Built by an Oracle Fusion consultant who got tired of BI Publisher.
-</p>
+## Resources & Prompts
+
+### MCP Resources
+
+Use these URIs with MCP resource-aware clients:
+
+**Metadata:**
+- `ofmcp://metadata/schema` - List tables
+- `ofmcp://metadata/table/{table}` - Table columns
+- `ofmcp://metadata/indexes/{table}` - Table indexes
+- `ofmcp://metadata/relationships/{table}` - Table relationships
+- `ofmcp://metadata/module/{module}` - Module summary
+- `ofmcp://metadata/process/{process_code}` - Process mapping
+
+**Search:**
+- `ofmcp://search/identifiers/{query}` - Identifier search
+- `ofmcp://search/semantic/{query}` - Semantic search
+- `ofmcp://search/descriptions/{query}` - Description search
+
+### MCP Prompts
+
+Pre-built prompt templates:
+- `list_tables`, `list_columns`, `table_overview`
+- `search_identifiers`, `semantic_search`
+- `lint_sql_and_fix`, `execute_oracle_sql`
+- `relationship_map`, `business_process_map`
+- `ap_invoice_query` - Domain-specific AP invoice helper
+
+---
+
+
+## Troubleshooting
+
+### Authentication Issues
+
+| Problem | Solution |
+|---------|----------|
+| "Access denied" or "Access SOAP" error | User lacks Oracle Fusion privileges. Contact admin. |
+| SSO browser doesn't open | Check `FUSION_EXPLORER_CHROME_PATH` or install Chrome |
+| Token expired | Run `authenticate` to re-login |
+| "Not authenticated" | Run `authenticate` or check `get_auth_status` |
+
+**Clear cached sessions:**
+```bash
+rm -rf ~/.ofrag/chrome-profile
+```
+
+### Configuration Issues
+
+| Problem | Solution |
+|---------|----------|
+| "FUSION_HOST must be set" | Set environment variable or add to config.json |
+| "licence not found" | Place license.json next to binary or set `LICENSE_PATH` |
+| "licence invalid" | Machine ID mismatch - get new license |
+
+### Forcing SSO / Overriding System Environment
+
+If you experience issues where a specific user seems to be stuck or the configuration is ignored (e.g., Gemini reports a user from a previous session despite no visible config), you can force SSO mode by explicitly setting empty environment variables in your MCP client configuration.
+
+**Gemini / Claude Config Example:**
+```json
+"env": {
+  "FUSION_HOST": "https://your-instance.oraclecloud.com",
+  "FUSION_SQL_REPORT_PATH": "/Custom/Financials/RP_ARB.xdo",
+  "FUSION_USER": "",
+  "FUSION_PASSWORD": ""
+}
+```
+Setting `FUSION_USER` and `FUSION_PASSWORD` to empty strings will override any system-level environment variables and force the server to use browser-based SSO.
+
+### Connection Issues
+
+| Problem | Solution |
+|---------|----------|
+| SOAP timeout | Check network connectivity to Oracle Fusion |
+| SSL errors | Verify FUSION_HOST uses HTTPS |
+| HTTP 500 errors | Check BI Publisher report path and permissions |
+
+---
+
+## Security Best Practices
+
+1. **Protect sensitive files**
+   ```bash
+   chmod 600 config.json license.json
+   ```
+
+2. **Use SSO over Basic Auth** - Tokens expire, passwords don't
+
+3. **Environment-specific configs** - Separate dev/prod settings
+
+4. **Audit access** - Monitor tool usage via logs in `~/.ofrag/logs/`
+
+
+
+---
+
+## Support
+
+- **Issues:** https://github.com/krokozyab/of_rag/issues
+- **Documentation:** See `docs/` folder for detailed guides

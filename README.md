@@ -61,7 +61,7 @@ See [Multi-Environment Management](docs/multi-environment.md) for full details.
 ## Documentation
 
 *   [**Installation & Setup**](docs/installation.md) - Detailed guide on how to install, configure, and get the binary running.
-*   [**Detailed MCP Server Docs**](docs/README_old.md) - Complete reference for configuration, authentication, variables and tools.
+*   [**Detailed MCP Server Docs**](docs/README.md) - Complete reference for configuration, authentication, variables and tools.
 *   [**Multi-Environment Management**](docs/multi-environment.md) - Configure and switch between dev, UAT, prod environments interactively.
 *   [**Semantic Search Setup**](docs/semantic-search-setup.md) - How to enable vector search and REST API catalog for full-powered semantic discovery.
 
