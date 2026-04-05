@@ -70,7 +70,6 @@ ofrag is an **MCP (Model Context Protocol) server** — an open standard that le
 
 ## 🔑 Why ofrag Has No Alternatives
 
-There is no other MCP server for Oracle Fusion. Period. Here's why this matters:
 
 | | ofrag + AI Agent | Manual BI Publisher | OTBI | Proprietary SQL Tools |
 |---|:---:|:---:|:---:|:---:|
